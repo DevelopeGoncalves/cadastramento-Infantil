@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministério Infantil - Sistema de Cadastro</title>
+    <style>
+        /* CSS Variables for easier theme changes */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #ff6b6b, #ffa726);
+            --text-color-dark: #333;
+            --text-color-medium: #6c757d;
+            --border-color: #e9ecef;
+            --success-bg: #d4edda;
+            --success-color: #155724;
+            --success-border: #c3e6cb;
+            --error-bg: #f8d7da;
+            --error-color: #721c24;
+            --error-border: #f5c6cb;
+            --accent-color: #28a745;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1200px;
+            min-height: 600px;
+        }
+
+        .header {
+            background: var(--secondary-gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            z-index: 1;
+            position: relative;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .status-online {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .status-offline {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 20px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color-medium);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: #ff6b6b;
+            background: white;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #ff6b6b;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tab-btn.active::after {
+            transform: scaleX(1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color-dark);
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            transform: translateY(-2px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .photo-upload {
+            text-align: center;
+            padding: 30px;
+            border: 2px dashed #dee2e6;
+            border-radius: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .photo-upload:hover {
+            border-color: #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .photo-upload.has-image {
+            border-color: var(--accent-color);
+            background: #f8fff8;
+        }
+
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            display: none;
+            border: 4px solid var(--accent-color);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--text-color-medium);
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: var(--text-color-medium);
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--secondary-gradient);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--text-color-medium);
+            color: white;
+            margin-left: 15px; 
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .form-actions {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: var(--success-bg);
+            color: var(--success-color);
+            border: 1px solid var(--success-border);
+        }
+
+        .error-message {
+            background: var(--error-bg);
+            color: var(--error-color);
+            border: 1px solid var(--error-border);
+        }
+
+        .children-list {
+            margin-top: 30px;
+        }
+
+        .child-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .child-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .child-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 3px solid var(--accent-color);
+        }
+
+        .child-info h4 {
+            color: var(--text-color-dark);
+            margin-bottom: 5px;
+        }
+
+        .child-info p {
+            color: var(--text-color-medium);
+            font-size: 0.9rem;
+            margin: 2px 0;
+        }
+
+        .turma-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .turma-bercario { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .turma-alfa { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        .turma-beta { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .turma-gama { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .turma-omega { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stats h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .turma-section {
+            margin-bottom: 30px;
+        }
+
+        .turma-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .turma-header h3 {
+            margin: 0;
+            margin-right: 10px;
+        }
+
+        .turma-count {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .turma-age-info {
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,107,107,.3);
+            border-radius: 50%;
+            border-top-color: #ff6b6b;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .tab-btn {
+                font-size: 1rem;
+                padding: 15px;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .form-actions .btn {
+                margin: 0 0 15px 0;
+                width: 100%;
+            }
+            .form-actions .btn-secondary {
+                margin-left: 0; 
+            }
+
+            .connection-status {
+                position: static;
+                margin-top: 10px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="connection-status" id="connectionStatus">
+                🔄 Verificando conexão...
+            </div>
+            <h1>🌟 Ministério Infantil</h1>
+            <p>Sistema de Cadastro e Controle</p>
+        </div>
+
+        <div class="nav-tabs" role="tablist">
+            <button class="tab-btn active" id="tab-cadastro" role="tab" aria-controls="cadastro" aria-selected="true" onclick="showTab('cadastro')">📝 Cadastro de Crianças</button>
+            <button class="tab-btn" id="tab-retiro" role="tab" aria-controls="retiro" aria-selected="false" onclick="showTab('retiro')">🏕️ Retiro de Outubro</button>
+        </div>
+
+        <div id="cadastro" class="tab-content active" role="tabpanel" aria-labelledby="tab-cadastro">
+            <div class="success-message message" id="cadastroSuccess">
+                ✅ Criança cadastrada com sucesso!
+            </div>
+            <div class="error-message message" id="cadastroError">
+                ❌ Erro ao cadastrar criança. Tente novamente.
+            </div>
+
+            <form id="cadastroForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nomeCompleto">Nome Completo *</label>
+                        <input type="text" id="nomeCompleto" name="nomeCompleto" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataNascimento">Data de Nascimento *</label>
+                        <input type="date" id="dataNascimento" name="dataNascimento" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto de Perfil</label>
+                    <div class="photo-upload" onclick="document.getElementById('fotoPerfil').click()">
+                        <img id="photoPreview" class="photo-preview" alt="Foto da criança">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Clique para adicionar uma foto</div>
+                        <input type="file" id="fotoPerfil" name="fotoPerfil" accept="image/*" style="display: none;" onchange="previewPhoto(this)">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nomeResponsavel">Nome do Responsável *</label>
+                        <input type="text" id="nomeResponsavel" name="nomeResponsavel" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="numeroResponsavel">Número do Responsável *</label>
+                        <input type="tel" id="numeroResponsavel" name="numeroResponsavel" required placeholder="(XX) XXXXX-XXXX">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="cadastrarBtn">💾 Cadastrar Criança</button>
+                    <button type="button" class="btn btn-secondary" onclick="exportChildrenToCsv()" id="exportarBtn">⬇️ Baixar Planilha de Crianças</button>
+                </div>
+            </form>
+
+            <div class="children-list">
+                <div class="stats-grid">
+                    <div class="stats">
+                        <h3 id="totalCriancas">0</h3>
+                        <p>Total de Crianças</p>
+                    </div>
+                    <div class="stats turma-bercario">
+                        <h3 id="totalBercario">0</h3>
+                        <p>Berçário (0-2 anos)</p>
+                    </div>
+                    <div class="stats turma-alfa">
+                        <h3 id="totalAlfa">0</h3>
+                        <p>Turma Alfa (3-4 anos)</p>
+                    </div>
+                    <div class="stats turma-beta">
+                        <h3 id="totalBeta">0</h3>
+                        <p>Turma Beta (5-6 anos)</p>
+                    </div>
+                    <div class="stats turma-gama">
+                        <h3 id="totalGama">0</h3>
+                        <p>Turma Gama (7-8 anos)</p>
+                    </div>
+                    <div class="stats turma-omega">
+                        <h3 id="totalOmega">0</h3>
+                        <p>Turma Ômega (9-11 anos)</p>
+                    </div>
+                </div>
+                <div id="listacrianças"></div>
+            </div>
+        </div>
+
+        <div id="retiro" class="tab-content" role="tabpanel" aria-labelledby="tab-retiro">
+            <div class="success-message message" id="retiroSuccess">
+                ✅ Inscrição para o retiro realizada com sucesso!
+            </div>
+            <div class="error-message message" id="retiroError">
+                ❌ Erro ao inscrever no retiro. Tente novamente.
+            </div>
+
+            <div style="background: linear-gradient(135deg, #ff9a9e, #fecfef); color: var(--text-color-dark); padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
+                <h2>🏕️ Retiro de Outubro 2025</h2>
+                <p>Inscreva sua criança para uma experiência incrível!</p>
+            </div>
+
+            <form id="retiroForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nomeRetiro">Nome da Criança *</label>
+                        <select id="nomeRetiro" name="nomeRetiro" required>
+                            <option value="">Selecione uma criança cadastrada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="idadeRetiro">Idade *</label>
+                        <input type="number" id="idadeRetiro" name="idadeRetiro" min="0" max="17" required readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sexoRetiro">Sexo *</label>
+                        <select id="sexoRetiro" name="sexoRetiro" required>
+                            <option value="">Selecione</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="numeroResponsavelRetiro">Número do Responsável *</label>
+                        <input type="tel" id="numeroResponsavelRetiro" name="numeroResponsavelRetiro" required readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="alergia">Alergias</label>
+                    <textarea id="alergia" name="alergia" placeholder="Descreva qualquer alergia alimentar, medicamentosa ou outras restrições..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes" name="observacoes" placeholder="Informações adicionais, medicamentos, cuidados especiais..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="inscreverBtn">🏕️ Inscrever no Retiro</button>
+                    <button type="button" class="btn btn-secondary" onclick="exportRetreatRegistrationsToCsv()" id="exportarRetiroBtn">⬇️ Baixar Planilha de Inscrições</button>
+                </div>
+            </form>
+
+            <div id="inscricoesRetiro" style="margin-top: 30px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // *** CONFIGURAÇÃO - Coloque aqui a URL do seu Google Apps Script ***
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxepxJ501Imw7DMDjaXhZSojQ42lQBO5Iu2ZDbUgRraWJHDat10FSvVTrq2OCHoQ66YuQ/exec';
+        
+        // Modo offline - muda para true quando não conseguir conectar com o Apps Script
+        let isOfflineMode = false;
+        
+        // Banco de dados local
+        let bancoDados = {
+            criancas: [],
+            inscricoesRetiro: []
+        };
+
+        // Chaves do localStorage
+        const LOCAL_STORAGE_KEYS = {
+            CRIANCAS: 'ministerio_criancas',
+            RETIRO: 'ministerio_retiro'
+        };
+
+        // ===== FUNÇÕES DE ARMAZENAMENTO LOCAL =====
+        
+        function saveToLocalStorage(key, data) {
+            try {
+                const jsonData = JSON.stringify(data);
+                // Simula localStorage usando uma variável global (pois localStorage não funciona nos artifacts)
+                window.localData = window.localData || {};
+                window.localData[key] = jsonData;
+                console.log(`Dados salvos localmente: ${key}`);
+            } catch (error) {
+                console.error('Erro ao salvar dados localmente:', error);
+            }
+        }
+
+        function loadFromLocalStorage(key) {
+            try {
+                window.localData = window.localData || {};
+                const jsonData = window.localData[key];
+                return jsonData ? JSON.parse(jsonData) : [];
+            } catch (error) {
+                console.error('Erro ao carregar dados locais:', error);
+                return [];
+            }
+        }
+
+        // ===== FUNÇÕES DE CONEXÃO =====
+        
+        function updateConnectionStatus(isOnline) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (isOnline) {
+                statusElement.textContent = '🟢 Online';
+                statusElement.className = 'connection-status status-online';
+                isOfflineMode = false;
+            } else {
+                statusElement.textContent = '🔴 Offline';
+                statusElement.className = 'connection-status status-offline';
+                isOfflineMode = true;
+            }
+        }
+
+        async function testConnection() {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=ping`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    updateConnectionStatus(true);
+                    return true;
+                }
+            } catch (error) {
+                console.log('Conexão com Apps Script indisponível, usando modo offline');
+            }
+            
+            updateConnectionStatus(false);
+            return false;
+        }
+
+        // ===== FUNÇÕES DE COMUNICAÇÃO COM APPS SCRIPT =====
+        
+        async function fetchFromSheets(action, method = 'GET', data = null) {
+            // Se estiver offline, retorna erro imediatamente
+            if (isOfflineMode) {
+                return { status: 'error', message: 'Sistema em modo offline' };
+            }
+
+            let url = `${WEB_APP_URL}?action=${action}`;
+            let options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // Adiciona timeout de 10 segundos
+                signal: AbortSignal.timeout(10000)
+            };
+
+            if (data && method === 'POST') {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                const result = await response.json();
+                updateConnectionStatus(true); // Conexão bem-sucedida
+                return result;
+            } catch (error) {
+                console.error(`Erro na comunicação com Apps Script (${action}):`, error);
+                updateConnectionStatus(false); // Falha na conexão
+                return { status: 'error', message: error.message };
+            }
+        }
+
+        // ===== FUNÇÕES DE DADOS =====
+        
+        async function carregarCriancas() {
+            let dataFromSheets = [];
+            
+            if (!isOfflineMode) {
+                const result = await fetchFromSheets('getCriancas');
+                if (result.status === 'success') {
+                    dataFromSheets = result.data || [];
+                }
+            }
+            
+            // Se obteve dados do Sheets, usa eles; senão usa dados locais
+            if (dataFromSheets.length > 0) {
+                bancoDados.criancas = dataFromSheets;
+                saveToLocalStorage(LOCAL_STORAGE_KEYS.CRIANCAS, dataFromSheets);
+            } else {
+                bancoDados.criancas = loadFromLocalStorage(LOCAL_STORAGE_KEYS.CRIANCAS);
+            }
+            
+            checkAndAutoUpdateTurmas();
+        }
+
+        async function carregarInscricoesRetiro() {
+            let dataFromSheets = [];
+            
+            if (!isOfflineMode) {
+                const result = await fetchFromSheets('getRetiroRegistrations');
+                if (result.status === 'success') {
+                    dataFromSheets = result.data || [];
+                }
+            }
+            
+            if (dataFromSheets.length > 0) {
+                bancoDados.inscricoesRetiro = dataFromSheets;
+                saveToLocalStorage(LOCAL_STORAGE_KEYS.RETIRO, dataFromSheets);
+            } else {
+                bancoDados.inscricoesRetiro = loadFromLocalStorage(LOCAL_STORAGE_KEYS.RETIRO);
+            }
+        }
+
+        // ===== FUNÇÕES AUXILIARES =====
+        
+        function determinarTurma(idade) {
+            if (idade <= 2) return 'Berçário';
+            if (idade >= 3 && idade <= 4) return 'Alfa';
+            if (idade >= 5 && idade <= 6) return 'Beta';
+            if (idade >= 7 && idade <= 8) return 'Gama';
+            if (idade >= 9 && idade <= 11) return 'Ômega';
+            return 'Sem Turma';
+        }
+
+        function obterClasseTurma(turma) {
+            const classes = {
+                'Berçário': 'turma-bercario',
+                'Alfa': 'turma-alfa',
+                'Beta': 'turma-beta',
+                'Gama': 'turma-gama',
+                'Ômega': 'turma-omega'
+            };
+            return classes[turma] || '';
+        }
+
+        function calcularIdade(dataNascimento) {
+            const hoje = new Date();
+            const nascimento = new Date(dataNascimento);
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const mes = hoje.getMonth() - nascimento.getMonth();
+            
+            if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            
+            return idade;
+        }
+
+        function showMessage(messageId, duration = 3000) {
+            const messageElement = document.getElementById(messageId);
+            if (messageElement) {
+                messageElement.style.display = 'block';
+                setTimeout(() => {
+                    messageElement.style.display = 'none';
+                }, duration);
+            }
+        }
+
+        function setButtonLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                if (isLoading) {
+                    button.disabled = true;
+                    const originalText = button.innerHTML;
+                    button.dataset.originalText = originalText;
+                    button.innerHTML = '<span class="loading"></span>Processando...';
+                } else {
+                    button.disabled = false;
+                    button.innerHTML = button.dataset.originalText || button.innerHTML.replace('<span class="loading"></span>Processando...', '');
+                }
+            }
+        }
+
+        // ===== FUNÇÕES DE INTERFACE =====
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-hidden', 'true');
+                tab.setAttribute('tabindex', '-1');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+                btn.setAttribute('tabindex', '-1');
+            });
+            
+            const activeTabContent = document.getElementById(tabName);
+            activeTabContent.classList.add('active');
+            activeTabContent.setAttribute('aria-hidden', 'false');
+            activeTabContent.setAttribute('tabindex', '0');
+
+            const activeTabButton = document.querySelector(`.tab-btn[onclick="showTab('${tabName}')"]`);
+            activeTabButton.classList.add('active');
+            activeTabButton.setAttribute('aria-selected', 'true');
+            activeTabButton.setAttribute('tabindex', '0');
+            
+            if (tabName === 'retiro') {
+                carregarInscricoesRetiro().then(() => {
+                    atualizarSelectCriancas();
+                    exibirInscricoesRetiro();
+                });
+            } else {
+                carregarCriancas().then(() => {
+                    exibirCriancas();
+                });
+            }
+        }
+
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    const uploadArea = document.querySelector('.photo-upload');
+                    
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadArea.classList.add('has-image');
+                    
+                    uploadArea.querySelector('.upload-icon').style.display = 'none';
+                    uploadArea.querySelector('.upload-text').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ===== FUNÇÕES DE ATUALIZAÇÃO AUTOMÁTICA =====
+        
+        async function checkAndAutoUpdateTurmas() {
+            let updatedCount = 0;
+            const childrenToProcess = [...bancoDados.criancas];
+            
+            for (const child of childrenToProcess) {
+                const index = bancoDados.criancas.findIndex(c => c.id === child.id || c.idCrianca === child.idCrianca);
+                if (index !== -1) {
+                    const originalChild = bancoDados.criancas[index];
+                    const currentAge = calcularIdade(originalChild.dataNascimento);
+                    const newTurma = determinarTurma(currentAge);
+
+                    if (originalChild.idade !== currentAge || originalChild.turma !== newTurma) {
+                        originalChild.idade = currentAge;
+                        originalChild.turma = newTurma;
+                        
+                        // Tenta atualizar no Sheets se online
+                        if (!isOfflineMode) {
+                            const dataToSend = {
+                                idCrianca: originalChild.idCrianca || originalChild.id,
+                                idade: originalChild.idade,
+                                turma: originalChild.turma
+                            };
+                            
+                            const result = await fetchFromSheets('updateCrianca', 'POST', dataToSend);
+                            if (result.status === 'success') {
+                                console.log(`Criança ${originalChild.nomeCompleto} atualizada no Sheets.`);
+                            }
+                        }
+                        
+                        updatedCount++;
+                    }
+                }
+            }
+
+            if (updatedCount > 0) {
+                // Salva localmente
+                saveToLocalStorage(LOCAL_STORAGE_KEYS.CRIANCAS, bancoDados.criancas);
+                exibirCriancas();
+                console.log(`${updatedCount} criança(s) teve(ram) a turma atualizada automaticamente.`);
+            }
+        }
+
+        // ===== EVENT LISTENERS =====
+        
+        document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            setButtonLoading('cadastrarBtn', true);
+            
+            const formData = new FormData(this);
+            const dataNascimentoStr = formData.get('dataNascimento');
+            const idade = calcularIdade(dataNascimentoStr);
+            const turma = determinarTurma(idade);
+            
+            const crianca = {
+                idCrianca: Date.now(),
+                nomeCompleto: formData.get('nomeCompleto'),
+                dataNascimento: dataNascimentoStr,
+                idade: idade,
+                turma: turma,
+                nomeResponsavel: formData.get('nomeResponsavel'),
+                numeroResponsavel: formData.get('numeroResponsavel'),
+                fotoPerfil: document.getElementById('photoPreview').src || null,
+                dataCadastro: new Date().toLocaleDateString('pt-BR')
+            };
+            
+            let success = false;
+            
+            // Tenta salvar no Sheets se online
+            if (!isOfflineMode) {
+                const result = await fetchFromSheets('addCrianca', 'POST', crianca);
+                success = result.status === 'success';
+                
+                if (!success && result.message) {
+                    document.getElementById('cadastroError').textContent = `❌ Erro: ${result.message}`;
+                    showMessage('cadastroError');
+                }
+            } else {
+                success = true; // No modo offline, considera sucesso
+            }
+
+            if (success) {
+                // Adiciona localmente
+                bancoDados.criancas.push(crianca);
+                saveToLocalStorage(LOCAL_STORAGE_KEYS.CRIANCAS, bancoDados.criancas);
+                
+                showMessage('cadastroSuccess');
+                
+                // Reset do formulário
+                this.reset();
+                document.getElementById('photoPreview').style.display = 'none';
+                document.querySelector('.photo-upload').classList.remove('has-image');
+                document.querySelector('.upload-icon').style.display = 'block';
+                document.querySelector('.upload-text').style.display = 'block';
+                
+                exibirCriancas();
+            }
+            
+            setButtonLoading('cadastrarBtn', false);
+        });
+
+        document.getElementById('retiroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            setButtonLoading('inscreverBtn', true);
+            
+            const criancaIdSelecionada = parseInt(document.getElementById('nomeRetiro').value);
+            const crianca = bancoDados.criancas.find(c => (c.idCrianca || c.id) === criancaIdSelecionada);
+            
+            if (!crianca) {
+                alert('Por favor, selecione uma criança válida para inscrever no retiro.');
+                setButtonLoading('inscreverBtn', false);
+                return;
+            }
+
+            const jaInscrita = bancoDados.inscricoesRetiro.some(i => (i.idCrianca || i.id) === criancaIdSelecionada);
+            if (jaInscrita) {
+                alert('Esta criança já está inscrita no retiro!');
+                setButtonLoading('inscreverBtn', false);
+                return;
+            }
+            
+            const inscricao = {
+                idInscricao: Date.now(),
+                idCrianca: criancaIdSelecionada,
+                nomeCrianca: crianca.nomeCompleto,
+                idade: document.getElementById('idadeRetiro').value,
+                turma: crianca.turma,
+                sexo: document.getElementById('sexoRetiro').value,
+                numeroResponsavel: document.getElementById('numeroResponsavelRetiro').value,
+                alergias: document.getElementById('alergia').value,
+                observacoes: document.getElementById('observacoes').value,
+                dataInscricao: new Date().toLocaleDateString('pt-BR')
+            };
+            
+            let success = false;
+            
+            // Tenta salvar no Sheets se online
+            if (!isOfflineMode) {
+                const result = await fetchFromSheets('addRetiroRegistration', 'POST', inscricao);
+                success = result.status === 'success';
+                
+                if (!success && result.message) {
+                    document.getElementById('retiroError').textContent = `❌ Erro: ${result.message}`;
+                    showMessage('retiroError');
+                }
+            } else {
+                success = true; // No modo offline, considera sucesso
+            }
+
+            if (success) {
+                // Adiciona localmente
+                bancoDados.inscricoesRetiro.push(inscricao);
+                saveToLocalStorage(LOCAL_STORAGE_KEYS.RETIRO, bancoDados.inscricoesRetiro);
+                
+                showMessage('retiroSuccess');
+                this.reset();
+                exibirInscricoesRetiro();
+            }
+            
+            setButtonLoading('inscreverBtn', false);
+        });
+
+        // Seleção de criança no retiro
+        document.getElementById('nomeRetiro').addEventListener('change', function() {
+            const criancaId = parseInt(this.value);
+            const crianca = bancoDados.criancas.find(c => (c.idCrianca || c.id) === criancaId);
+            
+            if (crianca) {
+                document.getElementById('idadeRetiro').value = crianca.idade;
+                document.getElementById('numeroResponsavelRetiro').value = crianca.numeroResponsavel;
+            } else {
+                document.getElementById('idadeRetiro').value = '';
+                document.getElementById('numeroResponsavelRetiro').value = '';
+                document.getElementById('sexoRetiro').value = '';
+            }
+        });
+
+        // Máscara para telefone
+        document.getElementById('numeroResponsavel').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, '($1) $2-$3');
+            } else if (value.length > 5) {
+                value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d\d)(\d{0,5}).*/, '($1) $2');
+            } else {
+                value = value.replace(/^(\d*)/, '($1');
+            }
+            e.target.value = value;
+        });
+
+        // ===== FUNÇÕES DE EXIBIÇÃO =====
+        
+        function exibirCriancas() {
+            const lista = document.getElementById('listacrianças');
+            atualizarEstatisticas();
+            
+            if (bancoDados.criancas.length === 0) {
+                lista.innerHTML = '<p style="text-align: center; color: var(--text-color-medium); padding: 40px;">Nenhuma criança cadastrada ainda.</p>';
+                return;
+            }
+            
+            const turmas = {
+                'Berçário': [],
+                'Alfa': [],
+                'Beta': [],
+                'Gama': [],
+                'Ômega': []
+            };
+            
+            bancoDados.criancas.forEach(crianca => {
+                if (turmas[crianca.turma]) {
+                    turmas[crianca.turma].push(crianca);
+                }
+            });
+            
+            let html = '';
+            
+            Object.entries(turmas).forEach(([nomeTurma, criancasTurma]) => {
+                if (criancasTurma.length > 0) {
+                    criancasTurma.sort((a, b) => a.nomeCompleto.localeCompare(b.nomeCompleto));
+
+                    const faixaEtaria = {
+                        'Berçário': '0 a 2 anos',
+                        'Alfa': '3 a 4 anos',
+                        'Beta': '5 a 6 anos',
+                        'Gama': '7 a 8 anos',
+                        'Ômega': '9 a 11 anos'
+                    };
+                    
+                    html += `
+                        <div class="turma-section">
+                            <div class="turma-header ${obterClasseTurma(nomeTurma)}">
+                                <h3>Turma ${nomeTurma}</h3>
+                                <span class="turma-count">${criancasTurma.length} criança${criancasTurma.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div class="turma-age-info">
+                                <strong>Faixa etária:</strong> ${faixaEtaria[nomeTurma]}
+                            </div>
+                            ${criancasTurma.map(crianca => `
+                                <div class="child-card">
+                                    ${crianca.fotoPerfil ? 
+                                        `<img src="${crianca.fotoPerfil}" alt="${crianca.nomeCompleto}" class="child-photo">` : 
+                                        '<div class="child-photo" style="background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-color-medium);">👶</div>'
+                                    }
+                                    <div class="child-info">
+                                        <h4>${crianca.nomeCompleto}</h4>
+                                        <p><strong>Idade:</strong> ${crianca.idade} anos</p>
+                                        <p><strong>Responsável:</strong> ${crianca.nomeResponsavel}</p>
+                                        <p><strong>Contato:</strong> ${crianca.numeroResponsavel}</p>
+                                    </div>
+                                    <div class="turma-badge ${obterClasseTurma(crianca.turma)}">
+                                        ${crianca.turma}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+            
+            lista.innerHTML = html;
+        }
+
+        function atualizarEstatisticas() {
+            const stats = {
+                total: bancoDados.criancas.length,
+                bercario: 0,
+                alfa: 0,
+                beta: 0,
+                gama: 0,
+                omega: 0
+            };
+            
+            bancoDados.criancas.forEach(crianca => {
+                switch(crianca.turma) {
+                    case 'Berçário': stats.bercario++; break;
+                    case 'Alfa': stats.alfa++; break;
+                    case 'Beta': stats.beta++; break;
+                    case 'Gama': stats.gama++; break;
+                    case 'Ômega': stats.omega++; break;
+                }
+            });
+            
+            document.getElementById('totalCriancas').textContent = stats.total;
+            document.getElementById('totalBercario').textContent = stats.bercario;
+            document.getElementById('totalAlfa').textContent = stats.alfa;
+            document.getElementById('totalBeta').textContent = stats.beta;
+            document.getElementById('totalGama').textContent = stats.gama;
+            document.getElementById('totalOmega').textContent = stats.omega;
+        }
+
+        async function atualizarSelectCriancas() {
+            await carregarCriancas();
+            const select = document.getElementById('nomeRetiro');
+            select.innerHTML = '<option value="">Selecione uma criança cadastrada</option>';
+            
+            if (bancoDados.criancas.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Nenhuma criança cadastrada ainda.';
+                option.disabled = true;
+                select.appendChild(option);
+                return;
+            }
+
+            const sortedCriancas = [...bancoDados.criancas].sort((a, b) => a.nomeCompleto.localeCompare(b.nomeCompleto));
+            
+            sortedCriancas.forEach(crianca => {
+                const option = document.createElement('option');
+                option.value = crianca.idCrianca || crianca.id;
+                option.textContent = `${crianca.nomeCompleto} (${crianca.idade} anos - ${crianca.turma})`;
+                select.appendChild(option);
+            });
+        }
+
+        function exibirInscricoesRetiro() {
+            const container = document.getElementById('inscricoesRetiro');
+            
+            if (bancoDados.inscricoesRetiro.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-color-medium); padding: 40px;">Nenhuma criança inscrita no retiro ainda.</p>';
+                return;
+            }
+            
+            const turmasRetiro = {
+                'Berçário': [],
+                'Alfa': [],
+                'Beta': [],
+                'Gama': [],
+                'Ômega': []
+            };
+            
+            bancoDados.inscricoesRetiro.forEach(inscricao => {
+                const criancaOriginal = bancoDados.criancas.find(c => (c.idCrianca || c.id) == (inscricao.idCrianca || inscricao.id));
+                inscricao.fotoPerfil = criancaOriginal ? criancaOriginal.fotoPerfil : null;
+
+                if (turmasRetiro[inscricao.turma]) {
+                    turmasRetiro[inscricao.turma].push(inscricao);
+                }
+            });
+            
+            let html = `
+                <div class="stats" style="background: linear-gradient(135deg, #4facfe, #00f2fe); margin-bottom: 30px;">
+                    <h3>${bancoDados.inscricoesRetiro.length}</h3>
+                    <p>Total de Inscrições para o Retiro</p>
+                </div>
+            `;
+            
+            Object.entries(turmasRetiro).forEach(([nomeTurma, inscricoesTurma]) => {
+                if (inscricoesTurma.length > 0) {
+                    inscricoesTurma.sort((a, b) => a.nomeCrianca.localeCompare(b.nomeCrianca));
+
+                    const faixaEtaria = {
+                        'Berçário': '0 a 2 anos',
+                        'Alfa': '3 a 4 anos',
+                        'Beta': '5 a 6 anos',
+                        'Gama': '7 a 8 anos',
+                        'Ômega': '9 a 11 anos'
+                    };
+                    
+                    html += `
+                        <div class="turma-section">
+                            <div class="turma-header ${obterClasseTurma(nomeTurma)}">
+                                <h3>Turma ${nomeTurma} - Retiro</h3>
+                                <span class="turma-count">${inscricoesTurma.length} inscrito${inscricoesTurma.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div class="turma-age-info">
+                                <strong>Faixa etária:</strong> ${faixaEtaria[nomeTurma]}
+                            </div>
+                            ${inscricoesTurma.map(inscricao => `
+                                <div class="child-card">
+                                    ${inscricao.fotoPerfil ? 
+                                        `<img src="${inscricao.fotoPerfil}" alt="${inscricao.nomeCrianca}" class="child-photo">` : 
+                                        '<div class="child-photo" style="background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-color-medium);">👶</div>'
+                                    }
+                                    <div class="child-info">
+                                        <h4>${inscricao.nomeCrianca}</h4>
+                                        <p><strong>Idade:</strong> ${inscricao.idade} anos | <strong>Sexo:</strong> ${inscricao.sexo}</p>
+                                        <p><strong>Contato:</strong> ${inscricao.numeroResponsavel}</p>
+                                        ${inscricao.alergias ? `<p><strong>Alergias:</strong> ${inscricao.alergias}</p>` : ''}
+                                        ${inscricao.observacoes ? `<p><strong>Obs:</strong> ${inscricao.observacoes}</p>` : ''}
+                                    </div>
+                                    <div class="turma-badge ${obterClasseTurma(inscricao.turma)}">
+                                        ${inscricao.turma}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // ===== FUNÇÕES DE EXPORTAÇÃO =====
+        
+        function escapeCsv(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+            let stringValue = String(value);
+            if (stringValue.includes(';') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
+                return `"${stringValue.replace(/"/g, '""')}"`;
+            }
+            return stringValue;
+        }
+
+        async function exportChildrenToCsv() {
+            setButtonLoading('exportarBtn', true);
+            
+            await carregarCriancas();
+            if (bancoDados.criancas.length === 0) {
+                alert('Não há crianças cadastradas para exportar.');
+                setButtonLoading('exportarBtn', false);
+                return;
+            }
+
+            const headers = [
+                'ID_Crianca', 'Nome_Completo', 'Data_Nascimento', 'Idade', 'Turma',
+                'Nome_Responsavel', 'Numero_Responsavel', 'Data_Cadastro'
+            ];
+            let csvContent = headers.map(escapeCsv).join(';') + '\n'; 
+
+            bancoDados.criancas.forEach(crianca => {
+                const row = [
+                    crianca.idCrianca || crianca.id,
+                    crianca.nomeCompleto,
+                    crianca.dataNascimento,
+                    crianca.idade,
+                    crianca.turma,
+                    crianca.nomeResponsavel,
+                    crianca.numeroResponsavel,
+                    crianca.dataCadastro
+                ];
+                csvContent += row.map(escapeCsv).join(';') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `cadastro_criancas_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setButtonLoading('exportarBtn', false);
+            alert('Planilha de crianças baixada com sucesso!');
+        }
+
+        async function exportRetreatRegistrationsToCsv() {
+            setButtonLoading('exportarRetiroBtn', true);
+            
+            await carregarInscricoesRetiro();
+            if (bancoDados.inscricoesRetiro.length === 0) {
+                alert('Não há inscrições no retiro para exportar.');
+                setButtonLoading('exportarRetiroBtn', false);
+                return;
+            }
+
+            const headers = [
+                'ID_Inscricao', 'ID_Crianca', 'Nome_Crianca', 'Idade', 'Turma', 'Sexo',
+                'Numero_Responsavel', 'Alergias', 'Observacoes', 'Data_Inscricao'
+            ];
+            let csvContent = headers.map(escapeCsv).join(';') + '\n'; 
+
+            bancoDados.inscricoesRetiro.forEach(inscricao => {
+                const row = [
+                    inscricao.idInscricao || inscricao.id,
+                    inscricao.idCrianca,
+                    inscricao.nomeCrianca,
+                    inscricao.idade,
+                    inscricao.turma,
+                    inscricao.sexo,
+                    inscricao.numeroResponsavel,
+                    inscricao.alergias,
+                    inscricao.observacoes,
+                    inscricao.dataInscricao
+                ];
+                csvContent += row.map(escapeCsv).join(';') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `inscricoes_retiro_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setButtonLoading('exportarRetiroBtn', false);
+            alert('Planilha de inscrições do retiro baixada com sucesso!');
+        }
+
+        // ===== INICIALIZAÇÃO =====
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Define estados ARIA iniciais
+            document.getElementById('tab-cadastro').setAttribute('aria-selected', 'true');
+            document.getElementById('tab-cadastro').setAttribute('tabindex', '0');
+            document.getElementById('cadastro').setAttribute('aria-hidden', 'false');
+            document.getElementById('cadastro').setAttribute('tabindex', '0');
+
+            document.getElementById('tab-retiro').setAttribute('aria-selected', 'false');
+            document.getElementById('tab-retiro').setAttribute('tabindex', '-1');
+            document.getElementById('retiro').setAttribute('aria-hidden', 'true');
+            document.getElementById('retiro').setAttribute('tabindex', '-1');
+
+            // Testa conexão e carrega dados
+            await testConnection();
+            await carregarCriancas();
+            exibirCriancas();
+
+            // Verifica conexão periodicamente (a cada 30 segundos)
+            setInterval(testConnection, 30000);
+            
+            console.log('Sistema de Ministério Infantil inicializado');
+            console.log(`Modo offline: ${isOfflineMode ? 'Ativado' : 'Desativado'}`);
+        });
+    </script>
+</body>
+</html>
